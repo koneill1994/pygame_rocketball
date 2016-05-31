@@ -1,5 +1,7 @@
 import sys, os, pygame, math
 
+from pygame import gfxdraw
+
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
@@ -73,6 +75,7 @@ def fuel_gauge():
   p.append((cx, cy))
 
   if len(p) > 2:
+    #gfxdraw.aapolygon(screen, p, fuel_color)
     pygame.draw.polygon(screen, fuel_color, p)
 
 def fuel_recovery_gauge():
@@ -91,6 +94,65 @@ def fuel_recovery_gauge():
   if len(p) > 2:
     pygame.draw.polygon(screen, fuel_color, p)
 
+def sanitize_color(color):
+  new_color=[]
+  for val in color:
+    if val>255:
+      val=255
+    elif val<0:
+      val=0
+    new_color.append(val)
+  return new_color
+	
+	
+def fuel_gauge_alt():
+  #pie guage for fuel
+  #draw circle aa
+  #draw background color wedge out of it
+  cx, cy, r = width-50, height-50, 25
+  fuel_angle = 360 - int(fuel)*360/100
+  fuel_color = int(-255*fuel/100+255),int(255*fuel/100),0
+  fuel_color = sanitize_color(fuel_color)
+  
+  p = [(cx, cy)]
+  for n in range(0,fuel_angle):
+    x = cx + int(r*1.2*math.sin(-(-math.pi+n*math.pi/180)))
+    y = cy+int(r*1.2*math.cos(-(-math.pi+n*math.pi/180)))
+    p.append((x, y))
+  p.append((cx, cy))
+
+  gfxdraw.aacircle(screen, cx, cy, r, fuel_color)
+  gfxdraw.filled_circle(screen, cx, cy, r, fuel_color)
+  
+  if len(p) > 2:
+    gfxdraw.aapolygon(screen, p, black)
+    pygame.draw.polygon(screen, black, p)
+	
+def fuel_recovery_gauge_alt():
+#pie guage for fuel recovery
+  #draw circle aa
+  #draw background color wedge out of it
+  #pie guage for fuel
+  cx, cy, r = 50, height-50, 25  
+  fuel_angle = 360 - int(fuel_rate*360)
+  fuel_color = int(-255*fuel_rate+255),0,int(255*fuel_rate)
+  fuel_color = sanitize_color(fuel_color)
+  
+  p = [(cx, cy)]
+  for n in range(0,fuel_angle):
+    x = cx + int(r*1.2*math.sin(-(-math.pi+n*math.pi/180)))
+    y = cy+int(r*1.2*math.cos(-(-math.pi+n*math.pi/180)))
+    p.append((x, y))
+  p.append((cx, cy))
+
+  gfxdraw.aacircle(screen, cx, cy, r, fuel_color)
+  gfxdraw.filled_circle(screen, cx, cy, r, fuel_color)
+  
+  if len(p) > 2:
+    gfxdraw.aapolygon(screen, p, black)
+    pygame.draw.polygon(screen, black, p)
+
+    
 fuel = 100
 fuel_rate = 1.
 highest=0
@@ -109,6 +171,7 @@ def velocity_indicator():
   p.append((cx,y))
 
   if len(p) > 2:
+    gfxdraw.aapolygon(screen, p, white)
     pygame.draw.polygon(screen, white, p)
 
 
@@ -164,14 +227,13 @@ while 1:
 
   #verbose_indicators()
   height_indicators()
-  fuel_gauge()
-  fuel_recovery_gauge()
+  fuel_gauge_alt()
+  fuel_recovery_gauge_alt()
   velocity_indicator()
 
   screen.blit(ball, ballrect)
   pygame.display.flip()
   
   ticks_end=pygame.time.get_ticks()
-  print ticks_end-ticks_start
   wait=(1000/60)-(ticks_end-ticks_start)
   pygame.time.wait(wait)
