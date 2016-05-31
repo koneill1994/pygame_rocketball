@@ -113,6 +113,9 @@ def velocity_indicator():
 
 
 while 1:
+
+  ticks_start = pygame.time.get_ticks()
+
   status = "nominal"
   for event in pygame.event.get():
     if event.type == pygame.QUIT: sys.exit()
@@ -167,4 +170,8 @@ while 1:
 
   screen.blit(ball, ballrect)
   pygame.display.flip()
-  pygame.time.wait(16)
+  
+  ticks_end=pygame.time.get_ticks()
+  print ticks_end-ticks_start
+  wait=(1000/60)-(ticks_end-ticks_start)
+  pygame.time.wait(wait)
