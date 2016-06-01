@@ -7,18 +7,54 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 pygame.init()
 
-size = width, height = 640, 480
+size = width, height = 1200, 800
 speed = [2,2]
 black = 0,0,0
 white = 255,255,255
 red = 255,0,0
 blue = 0,0,255
 green = 0,255,0
+yellow = 255,255,0
 
 screen = pygame.display.set_mode(size)
 
 ball = pygame.image.load("ball.gif")
 ballrect = ball.get_rect()
+
+def get_framerate_from_time(frame_duration):
+  #1000/60 = frame duration of 60 fps
+  # duration of n ms is 1/n fpms or 1000/n fps
+  return 1000/frame_duration
+
+def display_framerate(frame_duration):
+  if pygame.font:
+    font = pygame.font.Font(None, 12)
+    
+    fr_text = font.render(str(round(get_framerate_from_time(frame_duration))), 1, (255,255,0))
+    textpos = fr_text.get_rect(right=width)
+    screen.blit(fr_text, textpos)
+
+def frame_rate_fraction_indicator(wait_time,ideal_framerate):
+  # wait time is the empty bit
+  # 
+  cx, cy, r = width-50, 50, 10
+  angle = 360 - wait_time*360/ideal_framerate
+  
+  p = [(cx, cy)]
+  for n in range(0,angle):
+    x = cx + int(r*1.2*math.sin(-(-math.pi+n*math.pi/180)))
+    y = cy+int(r*1.2*math.cos(-(-math.pi+n*math.pi/180)))
+    p.append((x, y))
+  p.append((cx, cy))
+
+  gfxdraw.aacircle(screen, cx, cy, r, yellow)
+  gfxdraw.filled_circle(screen, cx, cy, r, yellow)
+  
+  if len(p) > 2:
+    gfxdraw.aapolygon(screen, p, black)
+    pygame.draw.polygon(screen, black, p)
+
+
 
 def height_indicators():
   if pygame.font:
@@ -174,10 +210,30 @@ def velocity_indicator():
     gfxdraw.aapolygon(screen, p, white)
     pygame.draw.polygon(screen, white, p)
 
+#add fuel upgrades which appear randomly offscreen and move slowly across
+#reduce size of ball or increase size of screen
+
+
+
+
+
+
+
+
+
+
+ticks_start=0
+ideal_framerate=1000/60
+wait_time=0
 
 while 1:
 
+  ticks_last=ticks_start
   ticks_start = pygame.time.get_ticks()
+  
+  frame_duration =ticks_start-ticks_last
+  
+  #print frame_duration
 
   status = "nominal"
   for event in pygame.event.get():
@@ -230,10 +286,13 @@ while 1:
   fuel_gauge_alt()
   fuel_recovery_gauge_alt()
   velocity_indicator()
+  display_framerate(frame_duration)
+  frame_rate_fraction_indicator(wait_time,ideal_framerate)
 
   screen.blit(ball, ballrect)
   pygame.display.flip()
   
   ticks_end=pygame.time.get_ticks()
-  wait=(1000/60)-(ticks_end-ticks_start)
-  pygame.time.wait(wait)
+  calc_time=ticks_end-ticks_start
+  wait=(ideal_framerate)-calc_time
+  wait_time = pygame.time.wait(wait)
